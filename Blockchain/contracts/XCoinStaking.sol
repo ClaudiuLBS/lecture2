@@ -79,7 +79,7 @@ contract XCoinStaking is XCoin, Ownable{
     return stakeOf(_stakeholder) * percent / 100;
   }
 
-  function distributeRewards() public {
+  function distributeRewards() public onlyOwner {
     for (uint256 i = 0; i < stakeholders.length; i += 1){
       address _stakeholder = stakeholders[i];
       uint256 _reward = calculateReward(_stakeholder);

@@ -19,7 +19,26 @@ async function main() {
 
   await xcoin.deployed();
 
+  const fse = require("fs-extra");
+
+  const srcDir = `C:/Users/Claudiu/Desktop/Blockchain_Project/Lecture2/Blockchain/artifacts`;
+  const destDir = `C:/Users/Claudiu/Desktop/Blockchain_Project/Lecture2/frontend/src/artifacts`;
+
+  // To copy a folder or file
+  fse.copySync(srcDir, destDir, { overwrite: true }, function (err) {
+    if (err) {
+      console.error(err); // add if you want to replace existing folder or file with same name
+    } else {
+      console.log("success!");
+    }
+  });
+
   console.log("xCoin deployed to: ", xcoin.address);
+  fse.writeFileSync(
+    `C:/Users/Claudiu/Desktop/Blockchain_Project/Lecture2/frontend/src/address.js`,
+    `export const address = '${xcoin.address}'`,
+    (err) => console.log(err)
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
