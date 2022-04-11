@@ -1,0 +1,41 @@
+body {
+  display: flex;
+  justify-content: center;
+}
+.App {
+  display: flex;
+  flex-direction: column;
+  margin: 5em 10em;
+  max-width: 500px;
+  min-width: 400px;
+  align-self: center;
+  padding: 1em;
+  border-radius: 10px;
+  background: rgb(232, 232, 232);
+}
+
+.progress-bar {
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.ListSubheader {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: rgb(157, 157, 157);
+}
+.Button {
+  margin-top: 0.3em !important;
+}
+.no-placements {
+  margin-top: 1em;
+  text-align: center;
+}
+
+.stakes-list {
+  margin-top: 1em;
+  border-radius: 10px !important;
+  overflow: hidden;
+}

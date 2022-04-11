@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
 import "./XCoin.sol";
@@ -17,9 +18,11 @@ contract XCoinStaking is XCoin, Ownable{
   function getUser() public view returns(address) {
     return msg.sender;
   }
-  function giveTokens() public {
-    _mint(msg.sender, 10000);
-  }
+
+  
+  // function giveTokens() public {
+  //   _mint(msg.sender, 1000000000000000000);
+  // }
 
   function isStakeholder(address _address) public view returns(bool, uint256) {
     for (uint256 i = 0; i < stakeholders.length; i += 1){
@@ -41,7 +44,15 @@ contract XCoinStaking is XCoin, Ownable{
     }
   }
 
-  function stakeOf(address _stakeholder) public view returns(uint256) {
+  function getMyStakesNumber() public view returns(uint256){
+    return stakes[msg.sender].length;
+  }
+
+  function getStakeInfo(uint index) public view returns(uint256) {
+    return stakes[msg.sender][index];
+  }
+
+  function getTotalStakedAmount(address _stakeholder) public view returns(uint256) {
     uint256 _totalStakes = 0;
     for (uint256 i = 0; i < stakes[_stakeholder].length; i += 1) {
       _totalStakes += stakes[_stakeholder][i];
@@ -52,7 +63,7 @@ contract XCoinStaking is XCoin, Ownable{
   function totalStakes() public view returns(uint256) {
     uint256 _totalStakes = 0;
     for (uint256 i = 0; i < stakeholders.length; i += 1){
-      _totalStakes = _totalStakes + stakeOf(stakeholders[i]);
+      _totalStakes = _totalStakes + getTotalStakedAmount(stakeholders[i]);
     }
     return _totalStakes;
   }
@@ -76,7 +87,7 @@ contract XCoinStaking is XCoin, Ownable{
   }
 
   function calculateReward(address _stakeholder) public view returns(uint256) {
-    return stakeOf(_stakeholder) * percent / 100;
+    return getTotalStakedAmount(_stakeholder) * percent / 100;
   }
 
   function distributeRewards() public onlyOwner {

@@ -3,23 +3,16 @@ const { ethers } = require("hardhat");
 
 describe("xCoinStaking", function () {
   it("The balance of the owner is setted", async function () {
-    const ownerAddress = "0xB6255fa0FB00A23fcA93949D156Bd546c30A6EFF";
+    // const ownerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
     const XCoinStaking = await ethers.getContractFactory("XCoinStaking");
-    const xcoinStaking = await XCoinStaking.deploy(ownerAddress, 50);
-    await xcoinStaking.deployed();
-    expect(await xcoinStaking.balanceOf(ownerAddress)).to.equal(50);
-    expect(await xcoinStaking.balanceOf(ownerAddress)).to.equal(50);
-    await xcoinStaking.giveTokens();
+    const xcoinStaking = await XCoinStaking.deploy(ownerAddress, 50000000);
+
     const myAddress = await xcoinStaking.getUser();
-    // console.log(myAddress);
+    await xcoinStaking.deployed();
     await xcoinStaking.stake(800);
     await xcoinStaking.stake(200);
-    expect(await xcoinStaking.totalStakes()).to.equal(1000);
-    expect(await xcoinStaking.stakeOf(myAddress)).to.equals(1000);
-    await xcoinStaking.withdrawStake(0);
-    expect(await xcoinStaking.stakeOf(myAddress)).to.equal(200);
-    await xcoinStaking.distributeRewards();
-    expect(await xcoinStaking.rewardOf(myAddress)).to.equal(2);
+    const x = await xcoinStaking.getMyStakesNumber();
+    console.log(x);
     // cred ca putem trece la partea de react
   });
 });

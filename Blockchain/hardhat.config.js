@@ -22,7 +22,7 @@ const privateKey = require("./secrets").privateKey;
 module.exports = {
   solidity: "0.8.0",
   paths: {
-    artifacts: "./src/artifacts",
+    artifacts: "./artifacts",
   },
   networks: {
     rinkeby: {

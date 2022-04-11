@@ -14,31 +14,35 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const XCoin = await hre.ethers.getContractFactory("XCoin");
-  const xcoin = await XCoin.deploy();
+  const XCoinStaking = await hre.ethers.getContractFactory("XCoinStaking");
+  const xcoinStaking = await XCoinStaking.deploy(
+    "0xB6255fa0FB00A23fcA93949D156Bd546c30A6EFF",
+    1000000000000000
+  );
 
-  await xcoin.deployed();
+  await xcoinStaking.deployed();
 
   const fse = require("fs-extra");
-
   const srcDir = `C:/Users/Claudiu/Desktop/Blockchain_Project/Lecture2/Blockchain/artifacts`;
   const destDir = `C:/Users/Claudiu/Desktop/Blockchain_Project/Lecture2/frontend/src/artifacts`;
 
-  // To copy a folder or file
+  //copy artifacts to frontend/src
   fse.copySync(srcDir, destDir, { overwrite: true }, function (err) {
     if (err) {
-      console.error(err); // add if you want to replace existing folder or file with same name
+      console.error(err);
     } else {
       console.log("success!");
     }
   });
 
-  console.log("xCoin deployed to: ", xcoin.address);
+  //copy the address to the address.js file from frontend/src
   fse.writeFileSync(
     `C:/Users/Claudiu/Desktop/Blockchain_Project/Lecture2/frontend/src/address.js`,
-    `export const address = '${xcoin.address}'`,
+    `export const address = '${xcoinStaking.address}'`,
     (err) => console.log(err)
   );
+
+  console.log("xCoin deployed to: ", xcoinStaking.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
