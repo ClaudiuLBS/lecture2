@@ -6,6 +6,7 @@ import { ethers } from "ethers";
 import { address } from "./address";
 import XCoinStaking from "./artifacts/contracts/XCoinStaking.sol/XCoinStaking.json";
 import StakesList from "./components/StakesList";
+import PendingTransactionModal from "./components/PendingTransactionModal";
 
 const App = () => {
   const [stakingAmount, setStakingAmount] = useState();
@@ -13,6 +14,15 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [enabledStakeButton, setEnabledStakeButton] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [pendingTransation, setPendingTransaction] = useState(false);
+  const [txHash, setTxHash] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    if (stakingAmount !== undefined && parseInt(stakingAmount) > 0)
+      setEnabledStakeButton(true);
+    else setEnabledStakeButton(false);
+  }, [stakingAmount]);
 
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const contract = new ethers.Contract(
@@ -22,9 +32,14 @@ const App = () => {
   );
 
   async function requestAccount() {
-    await window.ethereum.request({
+    const account = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
+    if (account.length > 0) {
+      const ownerAddress = await contract.owner();
+      if (ownerAddress.toLowerCase() == account[0].toLowerCase())
+        setIsOwner(true);
+    }
   }
 
   async function getStakePlacements() {
@@ -47,6 +62,7 @@ const App = () => {
       }
     }
   }
+
   useEffect(() => {
     requestAccount()
       .then(() => setErrorMessage(""))
@@ -54,21 +70,18 @@ const App = () => {
     getStakePlacements();
   }, []);
 
-  useEffect(() => {
-    if (stakingAmount !== undefined && parseInt(stakingAmount) > 0)
-      setEnabledStakeButton(true);
-    else setEnabledStakeButton(false);
-  }, [stakingAmount]);
-
   async function stake(amount) {
     if (typeof window.ethereum !== "undefined") {
       try {
         const data = await contract.stake(amount);
-        const txHash = data.hash;
-        provider.once(txHash, (transaction) => {
+        const currentTxHash = data.hash;
+        setTxHash(data.hash);
+
+        setPendingTransaction(true);
+        provider.once(currentTxHash, (transaction) => {
           setMyStakes([...myStakes, amount]);
+          setPendingTransaction(false);
         });
-        // provider.on("StakeAdded", (sender) => console.log(sender));
       } catch (err) {
         console.log("Error: ", err);
       }
@@ -79,8 +92,12 @@ const App = () => {
     if (typeof window.ethereum !== "undefined") {
       try {
         const data = await contract.withdrawStake(index);
-        const txHash = data.hash;
-        provider.once(txHash, (transaction) => {
+        const currentTxHash = data.hash;
+        setTxHash(data.hash);
+        setPendingTransaction(true);
+
+        provider.once(currentTxHash, (transaction) => {
+          setPendingTransaction(true);
           setMyStakes(
             myStakes.filter((item, itemIndex) => itemIndex !== index)
           );
@@ -94,32 +111,37 @@ const App = () => {
   if (errorMessage !== "") return <p>{errorMessage}</p>;
 
   return (
-    <div className="App">
-      <TextField
-        id="filled-basic"
-        label="Staking amount"
-        variant="filled"
-        value={stakingAmount}
-        type="number"
-        onChange={(event) => setStakingAmount(event.target.value)}
-      />
+    <div>
+      {isOwner ? <Button>Yes</Button> : null}
+      <div className="App">
+        <TextField
+          id="filled-basic"
+          label="Staking amount"
+          variant="filled"
+          value={stakingAmount}
+          type="number"
+          onChange={(event) => setStakingAmount(event.target.value)}
+        />
 
-      <Button
-        className="Button"
-        variant="contained"
-        disabled={!enabledStakeButton}
-        onClick={() => stake(stakingAmount)}
-      >
-        Stake
-      </Button>
+        <Button
+          className="Button"
+          variant="contained"
+          disabled={!enabledStakeButton}
+          onClick={() => stake(stakingAmount)}
+        >
+          Stake
+        </Button>
 
-      {loading ? (
-        <div className="progress-bar">
-          <CircularProgress />
-        </div>
-      ) : (
-        <StakesList list={myStakes} onClick={withdrawStake} />
-      )}
+        {loading ? (
+          <div className="progress-bar">
+            <CircularProgress />
+          </div>
+        ) : (
+          <StakesList list={myStakes} onClick={withdrawStake} />
+        )}
+
+        <PendingTransactionModal txHash={txHash} open={pendingTransation} />
+      </div>
     </div>
   );
 };

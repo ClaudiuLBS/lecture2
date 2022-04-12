@@ -15,10 +15,6 @@ contract XCoinStaking is XCoin, Ownable{
     _mint(msg.sender, _supply);
   }
 
-  function getUser() public view returns(address) {
-    return msg.sender;
-  }
-
   function isStakeholder(address _address) public view returns(bool, uint256) {
     for (uint256 i = 0; i < stakeholders.length; i += 1){
       if (_address == stakeholders[i]) return (true, i);
