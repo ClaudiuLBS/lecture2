@@ -13,6 +13,14 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [enabledStakeButton, setEnabledStakeButton] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const contract = new ethers.Contract(
+    address,
+    XCoinStaking.abi,
+    provider.getSigner()
+  );
+
   async function requestAccount() {
     await window.ethereum.request({
       method: "eth_requestAccounts",
@@ -21,13 +29,6 @@ const App = () => {
 
   async function getStakePlacements() {
     if (typeof window.ethereum !== "undefined") {
-      await requestAccount();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(
-        address,
-        XCoinStaking.abi,
-        provider.getSigner()
-      );
       try {
         const stakePlacementsNumber = await contract.getMyStakesNumber();
         let myOldStakes = [];
@@ -46,13 +47,12 @@ const App = () => {
       }
     }
   }
-
   useEffect(() => {
     requestAccount()
       .then(() => setErrorMessage(""))
       .catch(() => setErrorMessage("Pleas log in into your metamask account"));
     getStakePlacements();
-  });
+  }, []);
 
   useEffect(() => {
     if (stakingAmount !== undefined && parseInt(stakingAmount) > 0)
@@ -62,16 +62,13 @@ const App = () => {
 
   async function stake(amount) {
     if (typeof window.ethereum !== "undefined") {
-      // await requestAccount();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(
-        address,
-        XCoinStaking.abi,
-        provider.getSigner()
-      );
       try {
-        await contract.stake(amount);
-        setMyStakes([...myStakes, amount]);
+        const data = await contract.stake(amount);
+        const txHash = data.hash;
+        provider.once(txHash, (transaction) => {
+          setMyStakes([...myStakes, amount]);
+        });
+        // provider.on("StakeAdded", (sender) => console.log(sender));
       } catch (err) {
         console.log("Error: ", err);
       }
@@ -80,16 +77,14 @@ const App = () => {
 
   async function withdrawStake(index) {
     if (typeof window.ethereum !== "undefined") {
-      // await requestAccount();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(
-        address,
-        XCoinStaking.abi,
-        provider.getSigner()
-      );
       try {
-        await contract.withdrawStake(index);
-        // setMyStakes(myStakes.filter());
+        const data = await contract.withdrawStake(index);
+        const txHash = data.hash;
+        provider.once(txHash, (transaction) => {
+          setMyStakes(
+            myStakes.filter((item, itemIndex) => itemIndex !== index)
+          );
+        });
       } catch (err) {
         console.log("Error: ", err);
       }

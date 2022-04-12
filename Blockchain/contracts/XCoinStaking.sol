@@ -11,18 +11,13 @@ contract XCoinStaking is XCoin, Ownable{
   mapping(address => uint256[]) internal stakes;
   mapping(address => uint256) internal rewards;
 
-  constructor(address _owner, uint256 _supply) public {
-    _mint(_owner, _supply);
+  constructor(uint256 _supply) public {
+    _mint(msg.sender, _supply);
   }
 
   function getUser() public view returns(address) {
     return msg.sender;
   }
-
-  
-  // function giveTokens() public {
-  //   _mint(msg.sender, 1000000000000000000);
-  // }
 
   function isStakeholder(address _address) public view returns(bool, uint256) {
     for (uint256 i = 0; i < stakeholders.length; i += 1){
@@ -59,6 +54,7 @@ contract XCoinStaking is XCoin, Ownable{
     } 
     return _totalStakes;
   }
+
 
   function totalStakes() public view returns(uint256) {
     uint256 _totalStakes = 0;

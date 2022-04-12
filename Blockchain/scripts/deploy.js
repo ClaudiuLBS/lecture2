@@ -15,10 +15,7 @@ async function main() {
 
   // We get the contract to deploy
   const XCoinStaking = await hre.ethers.getContractFactory("XCoinStaking");
-  const xcoinStaking = await XCoinStaking.deploy(
-    "0xB6255fa0FB00A23fcA93949D156Bd546c30A6EFF",
-    1000000000000000
-  );
+  const xcoinStaking = await XCoinStaking.deploy(1000000000000000);
 
   await xcoinStaking.deployed();
 
