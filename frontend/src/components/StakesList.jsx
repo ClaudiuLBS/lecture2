@@ -1,17 +1,9 @@
-import {
-  Box,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader,
-} from "@mui/material";
+import { List, ListSubheader } from "@mui/material";
 import React from "react";
 import StakesListItem from "./StakesListItem";
 
 const StakesList = ({ list, onClick }) => {
-  if (list.length == 0)
+  if (list.length === 0)
     return <p className="no-placements">No current placements</p>;
 
   return (

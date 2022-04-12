@@ -1,12 +1,12 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { Button, CircularProgress, TextField } from "@mui/material";
 import { ethers } from "ethers";
+import { Link, Route, Routes } from "react-router-dom";
 
 import { address } from "./address";
 import XCoinStaking from "./artifacts/contracts/XCoinStaking.sol/XCoinStaking.json";
-import StakesList from "./components/StakesList";
-import PendingTransactionModal from "./components/PendingTransactionModal";
+import MainScreen from "./screens/MainScreen";
+import AdminScreen from "./screens/AdminScreen";
 
 const App = () => {
   const [stakingAmount, setStakingAmount] = useState();
@@ -17,6 +17,7 @@ const App = () => {
   const [pendingTransation, setPendingTransaction] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [isOwner, setIsOwner] = useState(false);
+  const [rewards, setRewards] = useState(0);
 
   useEffect(() => {
     if (stakingAmount !== undefined && parseInt(stakingAmount) > 0)
@@ -35,6 +36,10 @@ const App = () => {
     const account = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
+
+    const rewardValue = await contract.rewardOf(account[0]);
+    setRewards(parseInt(rewardValue._hex));
+
     if (account.length > 0) {
       const ownerAddress = await contract.owner();
       if (ownerAddress.toLowerCase() == account[0].toLowerCase())
@@ -81,6 +86,7 @@ const App = () => {
         provider.once(currentTxHash, (transaction) => {
           setMyStakes([...myStakes, amount]);
           setPendingTransaction(false);
+          // setStakingAmount(0);
         });
       } catch (err) {
         console.log("Error: ", err);
@@ -97,10 +103,27 @@ const App = () => {
         setPendingTransaction(true);
 
         provider.once(currentTxHash, (transaction) => {
-          setPendingTransaction(true);
+          setPendingTransaction(false);
           setMyStakes(
             myStakes.filter((item, itemIndex) => itemIndex !== index)
           );
+        });
+      } catch (err) {
+        console.log("Error: ", err);
+      }
+    }
+  }
+
+  async function claimRewards() {
+    if (typeof window.ethereum !== "undefined") {
+      try {
+        const data = await contract.claim();
+        const currentTxHash = data.hash;
+
+        setTxHash(data.hash);
+        setPendingTransaction(true);
+        provider.once(currentTxHash, (transaction) => {
+          setPendingTransaction(false);
         });
       } catch (err) {
         console.log("Error: ", err);
@@ -112,35 +135,36 @@ const App = () => {
 
   return (
     <div>
-      {isOwner ? <Button>Yes</Button> : null}
-      <div className="App">
-        <TextField
-          id="filled-basic"
-          label="Staking amount"
-          variant="filled"
-          value={stakingAmount}
-          type="number"
-          onChange={(event) => setStakingAmount(event.target.value)}
-        />
-
-        <Button
-          className="Button"
-          variant="contained"
-          disabled={!enabledStakeButton}
-          onClick={() => stake(stakingAmount)}
-        >
-          Stake
-        </Button>
-
-        {loading ? (
-          <div className="progress-bar">
-            <CircularProgress />
-          </div>
-        ) : (
-          <StakesList list={myStakes} onClick={withdrawStake} />
-        )}
-
-        <PendingTransactionModal txHash={txHash} open={pendingTransation} />
+      <nav>
+        <Link className="nav-link" to="/">
+          Home
+        </Link>
+        <Link className="nav-link" to="/admin">
+          Admin
+        </Link>
+      </nav>
+      <div className="main-container">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <MainScreen
+                stakingAmount={stakingAmount}
+                setStakingAmount={setStakingAmount}
+                stake={stake}
+                enabledStakeButton={enabledStakeButton}
+                myStakes={myStakes}
+                withdrawStake={withdrawStake}
+                txHash={txHash}
+                pendingTransation={pendingTransation}
+                loading={loading}
+                rewards={rewards}
+                claimRewards={claimRewards}
+              />
+            }
+          />
+          <Route path="/admin" element={<AdminScreen isOwner={isOwner} />} />
+        </Routes>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract XCoinStaking is XCoin, Ownable{
   
-  uint percent = 1; 
+  uint percent = 10; 
   address[] internal stakeholders;
   mapping(address => uint256[]) internal stakes;
   mapping(address => uint256) internal rewards;
@@ -15,19 +15,19 @@ contract XCoinStaking is XCoin, Ownable{
     _mint(msg.sender, _supply);
   }
 
-  function isStakeholder(address _address) public view returns(bool, uint256) {
+  function isStakeholder(address _address) private returns(bool, uint256) {
     for (uint256 i = 0; i < stakeholders.length; i += 1){
       if (_address == stakeholders[i]) return (true, i);
     }
     return (false, 0);
   }
 
-  function addStakeholder(address _stakeholder) public {
+  function addStakeholder(address _stakeholder) private {
     (bool _isStakeholder, ) = isStakeholder(_stakeholder);
     if(!_isStakeholder) stakeholders.push(_stakeholder);
   }
 
-  function removeStakeholder(address _stakeholder) public {
+  function removeStakeholder(address _stakeholder) private {
     (bool _isStakeholder, uint256 i) = isStakeholder(_stakeholder);
     if(_isStakeholder) {
       stakeholders[i] = stakeholders[stakeholders.length - 1];
@@ -52,14 +52,13 @@ contract XCoinStaking is XCoin, Ownable{
   }
 
 
-  function totalStakes() public view returns(uint256) {
+  function totalStakes() public view onlyOwner returns(uint256) {
     uint256 _totalStakes = 0;
     for (uint256 i = 0; i < stakeholders.length; i += 1){
       _totalStakes = _totalStakes + getTotalStakedAmount(stakeholders[i]);
     }
     return _totalStakes;
   }
-
   function stake(uint256 _stake) public {
     _burn(msg.sender, _stake);
     if(stakes[msg.sender].length == 0) addStakeholder(msg.sender);
