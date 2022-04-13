@@ -28,7 +28,7 @@ body {
   border-bottom-color: rgb(157, 157, 157);
 }
 .Button {
-  margin-top: 0.5em !important;
+  margin-top: 0.3em !important;
 }
 .no-placements {
   margin-top: 1em;
@@ -53,4 +53,7 @@ nav {
 .nav-link {
   margin: 0.5em 1em !important;
   text-decoration: none;
+}
+.admin-container {
+  padding: 1em;
 }

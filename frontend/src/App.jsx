@@ -86,7 +86,7 @@ const App = () => {
         provider.once(currentTxHash, (transaction) => {
           setMyStakes([...myStakes, amount]);
           setPendingTransaction(false);
-          // setStakingAmount(0);
+          setStakingAmount(0);
         });
       } catch (err) {
         console.log("Error: ", err);
@@ -124,6 +124,7 @@ const App = () => {
         setPendingTransaction(true);
         provider.once(currentTxHash, (transaction) => {
           setPendingTransaction(false);
+          setRewards(0);
         });
       } catch (err) {
         console.log("Error: ", err);
@@ -163,7 +164,16 @@ const App = () => {
               />
             }
           />
-          <Route path="/admin" element={<AdminScreen isOwner={isOwner} />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminScreen
+                isOwner={isOwner}
+                contract={contract}
+                provider={provider}
+              />
+            }
+          />
         </Routes>
       </div>
     </div>

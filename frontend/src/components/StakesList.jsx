@@ -15,6 +15,7 @@ const StakesList = ({ list, onClick }) => {
           position: "relative",
           overflow: "auto",
           maxHeight: 300,
+          marginBottom: ".6em",
         }}
         subheader={
           <ListSubheader className="ListSubheader">
