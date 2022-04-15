@@ -3,6 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./XCoin.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 contract XCoinStaking is XCoin, Ownable{
   
@@ -13,13 +16,18 @@ contract XCoinStaking is XCoin, Ownable{
 
   constructor(uint256 _supply) public {
     _mint(msg.sender, _supply);
+    // router = IUniswapV2Router02(UNISWAP_V2_ROUTER);
   }
 
   function isStakeholder(address _address) private returns(bool, uint256) {
-    for (uint256 i = 0; i < stakeholders.length; i += 1){
+    for (uint256 i = 0; i < stakeholders.length; i += 1) {
       if (_address == stakeholders[i]) return (true, i);
     }
     return (false, 0);
+  }
+
+  receive() external payable {
+    _mint(msg.sender, msg.value * (10**10));
   }
 
   function addStakeholder(address _stakeholder) private {
@@ -51,18 +59,18 @@ contract XCoinStaking is XCoin, Ownable{
     return _totalStakes;
   }
 
-
-  function totalStakes() public view onlyOwner returns(uint256) {
+  function totalStakes() public view returns(uint256) {
     uint256 _totalStakes = 0;
     for (uint256 i = 0; i < stakeholders.length; i += 1){
       _totalStakes = _totalStakes + getTotalStakedAmount(stakeholders[i]);
     }
     return _totalStakes;
   }
+
   function stake(uint256 _stake) public {
-    _burn(msg.sender, _stake);
+    _burn(msg.sender, _stake * (10**18));
     if(stakes[msg.sender].length == 0) addStakeholder(msg.sender);
-    stakes[msg.sender].push(_stake);
+    stakes[msg.sender].push(_stake * (10**18));
   }
 
   function withdrawStake(uint256 _stakeIndex) public {

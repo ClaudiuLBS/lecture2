@@ -6,28 +6,24 @@ const AdminScreen = ({ isOwner, contract, provider }) => {
   const [totalStakes, setTotalStakes] = useState(0);
 
   async function distributeRewards() {
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        const data = await contract.distributeRewards();
-        const currentTxHash = data.hash;
+    try {
+      const data = await contract.distributeRewards();
+      const currentTxHash = data.hash;
 
-        provider.once(currentTxHash, (transaction) => {
-          console.log("ook boy");
-        });
-      } catch (err) {
-        console.log("Error: ", err);
-      }
+      provider.once(currentTxHash, (transaction) => {
+        console.log("rewards distributed");
+      });
+    } catch (err) {
+      console.log("Error: ", err);
     }
   }
 
   async function getTotalStakes() {
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        const data = await contract.totalStakes();
-        setTotalStakes(parseInt(data._hex));
-      } catch (err) {
-        console.log("Error: ", err);
-      }
+    try {
+      const data = await contract.totalStakes();
+      setTotalStakes(parseInt(data._hex) / Math.pow(10, 18));
+    } catch (err) {
+      console.log("Error: ", err);
     }
   }
 
