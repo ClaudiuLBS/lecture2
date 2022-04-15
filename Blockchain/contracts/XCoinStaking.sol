@@ -9,25 +9,37 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract XCoinStaking is XCoin, Ownable{
   
-  uint percent = 10; 
+  uint256 percent = 10; 
   address[] internal stakeholders;
-  mapping(address => uint256[]) internal stakes;
-  mapping(address => uint256) internal rewards;
+  
+  mapping(address => uint256) public totalStakesPerUser;
+  mapping(address => uint256[]) public stakes;
 
-  constructor(uint256 _supply) public {
-    _mint(msg.sender, _supply);
-    // router = IUniswapV2Router02(UNISWAP_V2_ROUTER);
+  function convertDigitsToToken(uint256 value) public view returns(uint256) {
+    return value * (10**18);
+    // return value;
   }
+
+  function convertTokenToDigits(uint256 value) private view returns(uint256) {
+    return value / (10**18);
+  }
+  
+  constructor() public {
+    uint256 balance = convertDigitsToToken(100000); 
+    _mint(msg.sender, balance);
+  }
+  
+
+  // receive() external payable {
+  //   _mint(msg.sender, msg.value * (10**10));
+  // }
+
 
   function isStakeholder(address _address) private returns(bool, uint256) {
     for (uint256 i = 0; i < stakeholders.length; i += 1) {
       if (_address == stakeholders[i]) return (true, i);
     }
     return (false, 0);
-  }
-
-  receive() external payable {
-    _mint(msg.sender, msg.value * (10**10));
   }
 
   function addStakeholder(address _stakeholder) private {
@@ -47,60 +59,39 @@ contract XCoinStaking is XCoin, Ownable{
     return stakes[msg.sender].length;
   }
 
-  function getStakeInfo(uint index) public view returns(uint256) {
+  function getStakeValue(uint index) public view returns(uint256) {
     return stakes[msg.sender][index];
   }
 
-  function getTotalStakedAmount(address _stakeholder) public view returns(uint256) {
-    uint256 _totalStakes = 0;
-    for (uint256 i = 0; i < stakes[_stakeholder].length; i += 1) {
-      _totalStakes += stakes[_stakeholder][i];
-    } 
-    return _totalStakes;
+  function getMyStakes() public view returns (uint256[] memory) {
+    return stakes[msg.sender];
   }
+  
+  function stake(uint256 stakeValue) public {
+    stakeValue = convertDigitsToToken(stakeValue);
+    approve(msg.sender, stakeValue);
+    transferFrom(msg.sender, address(this), stakeValue);
 
-  function totalStakes() public view returns(uint256) {
-    uint256 _totalStakes = 0;
-    for (uint256 i = 0; i < stakeholders.length; i += 1){
-      _totalStakes = _totalStakes + getTotalStakedAmount(stakeholders[i]);
-    }
-    return _totalStakes;
-  }
-
-  function stake(uint256 _stake) public {
-    _burn(msg.sender, _stake * (10**18));
     if(stakes[msg.sender].length == 0) addStakeholder(msg.sender);
-    stakes[msg.sender].push(_stake * (10**18));
+
+    stakes[msg.sender].push(stakeValue);
+    totalStakesPerUser[msg.sender] += stakeValue;
   }
 
   function withdrawStake(uint256 _stakeIndex) public {
-    uint256 _stakeValue = stakes[msg.sender][_stakeIndex]; // salvam valoare
+    uint256 stakeValue = stakes[msg.sender][_stakeIndex]; // salvam valoare
     stakes[msg.sender][_stakeIndex] = stakes[msg.sender][stakes[msg.sender].length - 1]; //ii alocam valoarea de pe ultima pozitie
     stakes[msg.sender].pop(); //eliminam ultimul element
     if(stakes[msg.sender].length == 0) removeStakeholder(msg.sender);
-    _mint(msg.sender, _stakeValue);
+    transfer(msg.sender, stakeValue);
+    totalStakesPerUser[msg.sender] -= stakeValue;
+    
   }
 
-  function rewardOf(address _stakeholder) public view returns(uint256) {
-    return rewards[_stakeholder];
-  }
 
-  function calculateReward(address _stakeholder) public view returns(uint256) {
-    return getTotalStakedAmount(_stakeholder) * percent / 100;
-  }
-
-  function distributeRewards() public onlyOwner {
-    for (uint256 i = 0; i < stakeholders.length; i += 1){
-      address _stakeholder = stakeholders[i];
-      uint256 _reward = calculateReward(_stakeholder);
-      rewards[_stakeholder] = rewards[_stakeholder] + _reward;
-    }
-  }
 
   function claim() public {
-    uint256 reward = rewards[msg.sender];
-    rewards[msg.sender] = 0;
-    _mint(msg.sender, reward);
+    // _mint(msg.sender, reward);
   }
 }
 
