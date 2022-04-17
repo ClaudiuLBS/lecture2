@@ -12,7 +12,6 @@ contract XCoinStaking is XCoin, Ownable{
   uint256 stakeInterestRate = 7;
   uint256 loanInterestRate = 12;
   uint256 permittedExceeding = 14 days;
-  address[] internal stakeholders;
   
   struct Stake {
     uint256 value;
@@ -29,6 +28,7 @@ contract XCoinStaking is XCoin, Ownable{
     uint256 ratesNumber;
   }
   
+  mapping(address => bool) public isStakeholder;
   mapping(address => uint256) public totalStakesPerUser;
   mapping(address => Stake[]) public stakes;
   mapping(address => Loan) public loans;
@@ -63,6 +63,11 @@ contract XCoinStaking is XCoin, Ownable{
     return stakeValue * stakeInterestRate / 100;
   }
 
+  constructor() public {
+    uint256 balance = convertTokensToDigits(100000); 
+    _mint(msg.sender, balance);
+  }
+
   //nu stiu cum se cheama persoana care face un imprumut
   function penalizeUser(address user) internal{ 
     uint256 difference = block.timestamp - loans[user].nextRate;
@@ -75,30 +80,13 @@ contract XCoinStaking is XCoin, Ownable{
         loans[user].guaranty = 0;
     }
   }
-  
-  constructor() public {
-    uint256 balance = convertTokensToDigits(100000); 
-    _mint(msg.sender, balance);
+
+  function addStakeholder(address stakeholder) public {
+    isStakeholder[stakeholder] = true;
   }
 
-  function isStakeholder(address _address) public view returns(bool, uint256) {
-    for (uint256 i = 0; i < stakeholders.length; i += 1) {
-      if (_address == stakeholders[i]) return (true, i);
-    }
-    return (false, 0);
-  }
-
-  function addStakeholder(address _stakeholder) public {
-    (bool _isStakeholder, ) = isStakeholder(_stakeholder);
-    if(!_isStakeholder) stakeholders.push(_stakeholder);
-  }
-
-  function removeStakeholder(address _stakeholder) public {
-    (bool _isStakeholder, uint256 i) = isStakeholder(_stakeholder);
-    if(_isStakeholder) {
-      stakeholders[i] = stakeholders[stakeholders.length - 1];
-      stakeholders.pop();
-    }
+  function removeStakeholder(address stakeholder) public {
+    isStakeholder[stakeholder] = false;
   }
 
   function getMyStakes() public view returns (Stake[] memory) {
