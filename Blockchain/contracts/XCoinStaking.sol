@@ -19,6 +19,7 @@ contract XCoinStaking is XCoin, Ownable{
     uint256 placementDate;
     uint256 nextClaim;
   }
+  
   struct Loan {
     uint256 value; //tokens
     uint256 rate; //monthly
@@ -34,11 +35,11 @@ contract XCoinStaking is XCoin, Ownable{
   mapping(address => Loan) public loans;
 
   function convertTokensToDigits(uint256 value) public pure returns(uint256) {
-    return value * (10**18);
+    return value * 1e18;
   }
-
+  
   function convertDigitsToTokens(uint256 value) public pure returns(uint256) {
-    return value / (10**18);
+    return value / 1e18;
   }
 
   function convertTimestamToDays(uint256 timestamp) public pure returns(uint256) {
@@ -49,9 +50,8 @@ contract XCoinStaking is XCoin, Ownable{
     loanValue = convertTokensToDigits(loanValue);
     return (loanValue / 100000) * period;
   }
-
+  
   function calculateTotalPayment(uint256 loanValue, uint period) public view returns(uint256) {
-    // uint addings = (period - 1) * loanValue * loanInterestRate / 200;
     return loanValue + period * loanValue * loanInterestRate / 100;
   }
 
@@ -95,6 +95,7 @@ contract XCoinStaking is XCoin, Ownable{
   
   function stake(uint256 stakeValue) public {
     stakeValue = convertTokensToDigits(stakeValue); // 1 = 10**18
+
     approve(msg.sender, stakeValue);
     transferFrom(msg.sender, address(this), stakeValue);
 
@@ -133,9 +134,9 @@ contract XCoinStaking is XCoin, Ownable{
     totalStakesPerUser[msg.sender] -= stakeValue;
   }
 
-  function claim(uint256 stakeIndex) public returns(bool){
+  function claim(uint256 stakeIndex) public {
     require(stakes[msg.sender].length > stakeIndex, "Stake doesn't exist");
-    require(stakes[msg.sender][stakeIndex].nextClaim < block.timestamp, "You can claim once a mounth");
+    require(stakes[msg.sender][stakeIndex].nextClaim <= block.timestamp, "You can claim once a mounth");
     require(stakes[msg.sender][stakeIndex].monthlyReward <= balanceOf(address(this)), "Sorry we are broke");
 
     _mint(msg.sender, stakes[msg.sender][stakeIndex].monthlyReward);
